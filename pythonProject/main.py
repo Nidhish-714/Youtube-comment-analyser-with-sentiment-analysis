@@ -16,7 +16,6 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 st.title("YouTube Comment Analysis")
 # Input field for YouTube link
 youtube_link = st.text_input("Enter the YouTube video URL:")
-
 df = preprocess.prepro(youtube_link)
 st.dataframe(df)
 
