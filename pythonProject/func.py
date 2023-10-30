@@ -85,25 +85,28 @@ def analyze_dataframe1(df):
     hour_counts = df['hour'].value_counts().sort_index()
 
     # Plot comments per hour
-    plt.figure(figsize=(10, 5))
-    sns.barplot(x=hour_counts.index, y=hour_counts.values)
-    plt.title('Comments per Hour')
-    plt.xlabel('Hour')
-    plt.ylabel('Comment Count')
-    plt.show()
+    return hour_counts
+    # plt.figure(figsize=(10, 5))
+    # sns.barplot(x=hour_counts.index, y=hour_counts.values)
+    # plt.title('Comments per Hour')
+    # plt.xlabel('Hour')
+    # plt.ylabel('Comment Count')
+    # plt.show()
 
 def analyze_dataframe2(df):
     words = ' '.join(df['English_noemoji_Text']).split()
     word_counts = pd.Series(words).value_counts().head(10)
 
+    return word_counts
+
     # Plot the top 10 most common words
-    plt.figure(figsize=(10, 5))
-    sns.barplot(x=word_counts.index, y=word_counts.values)
-    plt.title('Top 10 Most Common Words')
-    plt.xlabel('Word')
-    plt.ylabel('Frequency')
-    plt.xticks(rotation=45)
-    plt.show()
+    # plt.figure(figsize=(10, 5))
+    # sns.barplot(x=word_counts.index, y=word_counts.values)
+    # plt.title('Top 10 Most Common Words')
+    # plt.xlabel('Word')
+    # plt.ylabel('Frequency')
+    # plt.xticks(rotation=45)
+    # plt.show()
 
 def analyze_dataframe3(df):
     top_10_authors = df['author'].value_counts().head(10)
@@ -118,3 +121,72 @@ def top_liked_comments(df):
     top_10_comments = sorted_df.head(10)
 
     return top_10_comments
+
+
+def analyze_sentiments(df):
+    sentiment_counts = df['Sentiment_Labels_English_noemoji_Text'].value_counts()
+    return sentiment_counts
+    # Plot sentiment distribution
+    # plt.figure(figsize=(6, 4))
+    # sns.barplot(x=sentiment_counts.index, y=sentiment_counts.values)
+    # plt.title('Sentiment Distribution')
+    # plt.xlabel('Sentiment')
+    # plt.ylabel('Count')
+    # plt.show()
+
+def analyze_emojis(df):
+    emoji_pattern = re.compile("[\U0001F600-\U0001F64F\U0001F300-\U0001F5FF\U0001F680-\U0001F6FF\U0001F700-\U0001F77F\U0001F780-\U0001F7FF\U0001F800-\U0001F8FF\U0001F900-\U0001F9FF\U0001FA00-\U0001FA6F\U0001FA70-\U0001FAFF\U0001F004-\U0001F0CF\U0001F170-\U0001F251\U0001F004-\U0001F251]+", flags=re.UNICODE)
+    
+    # Extract emojis from the 'text' column
+    emojis = [re.findall(emoji_pattern, text) for text in df['text']]
+    emojis_flat = [emoji for sublist in emojis for emoji in sublist]
+    
+    emoji_counts = pd.Series(emojis_flat).value_counts()
+    top_10_emojis = emoji_counts.head(10)
+
+    return top_10_emojis
+
+def analyze_comments_over_time(df):
+    # Set the index to 'published_at'
+    df.set_index('published_at', inplace=True)
+
+    # Resample data on a daily basis
+    daily_comments = df['like_count'].resample('D').count()
+    daily_likes = df['like_count'].resample('D').sum()
+
+    # Create a Streamlit app
+    st.title("Comment Trends Over Time")
+    st.dataframe(df, height=300)
+
+    # Create a Matplotlib figure and axes
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    # Plot the number of comments and likes over time
+    ax.plot(daily_comments.index, daily_comments, label='Number of Comments', marker='o')
+    ax.plot(daily_likes.index, daily_likes, label='Total Likes', marker='o')
+    ax.set_title('Comment Trends Over Time')
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Count')
+    ax.legend()
+    ax.grid(True)
+
+    # Display the Matplotlib plot using st.pyplot
+    st.pyplot(fig)
+
+    return df
+
+def analyze_and_display_largest_comments(df, N=5):
+    # Calculate comment length
+    df['comment_length'] = df['text'].apply(len)
+
+    # Sort the DataFrame by comment length in descending order
+    df = df.sort_values(by='comment_length', ascending=False)
+
+    # Display the top N largest comments
+    largest_comments = df.head(N)
+
+    # Create a Streamlit app
+    st.title(f"Top {N} Largest Comments")
+    st.dataframe(largest_comments)
+
+    return df
